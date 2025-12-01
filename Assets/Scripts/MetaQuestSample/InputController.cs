@@ -5,23 +5,27 @@ using UnityEngine;
 /// </summary>
 public class InputController : MonoBehaviour
 {
-    [SerializeField] private GameObject centerEyeAnchor; // Reference to the center eye anchor in the CameraRig
-    [SerializeField] private GameObject gui; // Reference to the GUI GameObject
+    [SerializeField] private GameObject _centerEyeAnchor; // Reference to the center eye anchor in the CameraRig
+    [SerializeField] private GameObject _gui; // Reference to the GUI GameObject
+    [SerializeField] private RoboflowCaller _roboflowCaller; // Reference to the GUI GameObject
+
+    private void Start()
+    {
+        _gui.SetActive(false);
+    }
 
     void Update()
     {
         // Open / Close GUI
         if (OVRInput.GetDown(OVRInput.Button.Start))
         {
-            if (!this.gui.activeSelf)
+            _roboflowCaller.onStreamingButtonCLicked();
+            _gui.SetActive(_roboflowCaller.IsStreaming);
+
+            if (_gui.activeSelf)
             {
-                gui.transform.position = centerEyeAnchor.transform.position + centerEyeAnchor.transform.forward * 0.6f;
-                gui.transform.rotation = Quaternion.LookRotation(gui.transform.position - centerEyeAnchor.transform.position);
-                gui.SetActive(true);
-            }
-            else
-            {
-                gui.SetActive(false);
+                _gui.transform.position = _centerEyeAnchor.transform.position + _centerEyeAnchor.transform.forward * 0.6f;
+                _gui.transform.rotation = Quaternion.LookRotation(_gui.transform.position - _centerEyeAnchor.transform.position);
             }
         }
     }

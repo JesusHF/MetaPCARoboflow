@@ -11,6 +11,8 @@ using System.ComponentModel;
 /// </summary>
 public class RoboflowCaller : MonoBehaviour
 {
+    public bool IsStreaming { get { return _isStreaming; } }
+
     [Header("Camera & Streaming")]
     [SerializeField] private RawImage _imageDisplay; // UI display for webcam feed
     private PassthroughCameraAccess _cameraAccess;
