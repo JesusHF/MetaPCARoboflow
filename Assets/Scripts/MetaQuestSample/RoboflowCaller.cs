@@ -79,23 +79,16 @@ public class RoboflowCaller : MonoBehaviour
         if (_isStreaming)
         {
             _isStreaming = false;
+            StopAllCoroutines();
             clearPreviousMarkers();
             Debug.Log("Streaming stopped.");
         }
         else
         {
-            GUI.SetActive(false);
             _isStreaming = true;
+            GUI.SetActive(false);
             StartCoroutine(callRoboflow());
             Debug.Log("Streaming started.");
-        }
-    }
-
-    private void updateTexture2D()
-    {
-        if (_cameraAccess.enabled)
-        {
-            _texture2D = _cameraAccess.GetTexture() as Texture2D;
         }
     }
 
@@ -136,14 +129,17 @@ public class RoboflowCaller : MonoBehaviour
 
     private IEnumerator callRoboflow()
     {
-        while (_isStreaming)
+        while (true)
         {
             if (_texture2D == null)
             {
                 yield return null;
-                continue;
             }
-            updateTexture2D();
+
+            if (_cameraAccess != null && _cameraAccess.enabled)
+            {
+                _texture2D = _cameraAccess.GetTexture() as Texture2D;
+            }
 
             byte[] jpg = resizeTexture(_texture2D, 512, 512).EncodeToJPG(80);
             string base64Image = Convert.ToBase64String(jpg);

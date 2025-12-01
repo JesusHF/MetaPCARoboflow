@@ -1054,10 +1054,6 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -4591318311845815790, guid: 993a7abbb30564a439b9818cdc8d9fb4, type: 3}
-      propertyPath: _cameraRig
-      value: 
-      objectReference: {fileID: 1745400556}
-    - target: {fileID: -4591318311845815790, guid: 993a7abbb30564a439b9818cdc8d9fb4, type: 3}
       propertyPath: _removeHands
       value: 0
       objectReference: {fileID: 0}
@@ -2248,7 +2244,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f80dd1c8121bbb47a9fd2f8b352a310, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  imageDisplay: {fileID: 8812376782171075459}
+  _imageDisplay: {fileID: 8812376782171075459}
   envRaycastManager: {fileID: 1061294767}
   GUI: {fileID: 1701312357}
   leftHandController: {fileID: 315877745}
@@ -2534,7 +2530,7 @@ MonoBehaviour:
   requestBodyTrackingPermissionOnStartup: 0
   requestFaceTrackingPermissionOnStartup: 0
   requestEyeTrackingPermissionOnStartup: 0
-  requestScenePermissionOnStartup: 0
+  requestScenePermissionOnStartup: 1
   requestRecordAudioPermissionOnStartup: 0
   requestPassthroughCameraAccessPermissionOnStartup: 0
   _localDimming: 1
