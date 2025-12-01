@@ -79,6 +79,7 @@ Assets/Oculus/OculusProjectConfig.asset
 *.user
 *.suo
 *.log
+*.slnx
 
 # Key files
 /[Aa]ssets/[Ss]cripts/[Ss]ecrets/API_KEYS.cs

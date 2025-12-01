@@ -34,7 +34,7 @@ For CUDA I recommend this link https://developer.nvidia.com/cuda-downloads
 ### 3A. Run Unity sample
 
 * Open `RoboflowUnityTutorial.unity` in Unity.
-* Create your APIKeys.cs file (see below).
+* Create your API_KEYS.cs file (see below).
 * Play the scene. The first inference call may take a few seconds while the model is cached.
 
 ### 3B. Run Meta Quest sample
