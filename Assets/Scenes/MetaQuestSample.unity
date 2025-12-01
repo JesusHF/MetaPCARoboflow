@@ -2331,7 +2331,7 @@ MonoBehaviour:
   - windscreen
   minConfidence: 0.76
   RF_MODEL: our-data-1xywo/3
-  USE_LOCAL_SERVER: 0
+  USE_LOCAL_SERVER: 1
   LOCAL_SERVER_IP_ADDRESS: http://192.168.1.170:9001
 --- !u!4 &1498238869
 Transform:
