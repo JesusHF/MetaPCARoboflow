@@ -12,10 +12,10 @@ using System.ComponentModel;
 public class RoboflowCaller : MonoBehaviour
 {
     [Header("Camera & Streaming")]
-    [SerializeField] private RawImage imageDisplay; // UI display for webcam feed
-    private PassthroughCameraAccess cameraAccess;
-    private Texture2D texture2D = null; // Used for sending frames to Roboflow
-    private bool isStreaming = false; // Streaming toggle
+    [SerializeField] private RawImage _imageDisplay; // UI display for webcam feed
+    private PassthroughCameraAccess _cameraAccess;
+    private Texture2D _texture2D = null; // Used for sending frames to Roboflow
+    private bool _isStreaming = false; // Streaming toggle
 
     [Header("3D Scene References")]
     [SerializeField] private EnvironmentRaycastManager envRaycastManager;
@@ -76,25 +76,26 @@ public class RoboflowCaller : MonoBehaviour
     /// </summary>
     public void onStreamingButtonCLicked()
     {
-        if (isStreaming)
+        if (_isStreaming)
         {
-            isStreaming = false;
+            _isStreaming = false;
             clearPreviousMarkers();
             Debug.Log("Streaming stopped.");
         }
         else
         {
             GUI.SetActive(false);
-            isStreaming = true;
+            _isStreaming = true;
             StartCoroutine(callRoboflow());
             Debug.Log("Streaming started.");
         }
     }
 
-    private void updateTexture2D() {
-        if (cameraAccess.enabled)
+    private void updateTexture2D()
+    {
+        if (_cameraAccess.enabled)
         {
-            texture2D = cameraAccess.GetTexture() as Texture2D;
+            _texture2D = _cameraAccess.GetTexture() as Texture2D;
         }
     }
 
@@ -105,14 +106,14 @@ public class RoboflowCaller : MonoBehaviour
     {
         Debug.Log("Setup Camera...");
 
-        cameraAccess = gameObject.AddComponent<PassthroughCameraAccess>();
-        cameraAccess.CameraPosition = PassthroughCameraAccess.CameraPositionType.Left;
-        cameraAccess.RequestedResolution = new Vector2Int(1280, 960);
+        _cameraAccess = gameObject.AddComponent<PassthroughCameraAccess>();
+        _cameraAccess.CameraPosition = PassthroughCameraAccess.CameraPositionType.Left;
+        _cameraAccess.RequestedResolution = new Vector2Int(1280, 960);
 
-        if (cameraAccess.enabled)
+        if (_cameraAccess.enabled)
         {
-            texture2D = cameraAccess.GetTexture() as Texture2D;
-            imageDisplay.texture = cameraAccess.GetTexture();
+            _texture2D = _cameraAccess.GetTexture() as Texture2D;
+            _imageDisplay.texture = _cameraAccess.GetTexture();
         }
     }
 
@@ -135,16 +136,16 @@ public class RoboflowCaller : MonoBehaviour
 
     private IEnumerator callRoboflow()
     {
-        while (isStreaming)
+        while (_isStreaming)
         {
-            if (texture2D == null)
+            if (_texture2D == null)
             {
                 yield return null;
                 continue;
             }
             updateTexture2D();
 
-            byte[] jpg = resizeTexture(texture2D, 512, 512).EncodeToJPG(80);
+            byte[] jpg = resizeTexture(_texture2D, 512, 512).EncodeToJPG(80);
             string base64Image = Convert.ToBase64String(jpg);
             var image = new InferenceRequestImage("base64", base64Image);
 
@@ -203,7 +204,7 @@ public class RoboflowCaller : MonoBehaviour
     /// </summary>
     public void renderDetections(List<ObjectDetectionPrediction> predictions)
     {
-        Vector2Int camRes = cameraAccess.CurrentResolution;
+        Vector2Int camRes = _cameraAccess.CurrentResolution;
         float halfWidth = targetWidth * 0.5f;
         float halfHeight = targetHeight * 0.5f;
 
@@ -230,7 +231,7 @@ public class RoboflowCaller : MonoBehaviour
             float perX = (adjustedCenterX + halfWidth) / targetWidth;
             float perY = (adjustedCenterY + halfHeight) / targetHeight;
 
-            Ray centerRay = cameraAccess.ViewportPointToRay(new Vector2(perX, 1.0f - perY));
+            Ray centerRay = _cameraAccess.ViewportPointToRay(new Vector2(perX, 1.0f - perY));
             if (!envRaycastManager.Raycast(centerRay, out var centerHit))
             {
                 Debug.LogWarning("Raycast failed.");
