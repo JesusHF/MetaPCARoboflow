@@ -64,7 +64,7 @@ public class RoboflowCaller : MonoBehaviour
 
         _streamingFeedbackGUI.SetActive(false);
         result = new Texture2D(targetWidth, targetHeight, TextureFormat.RGBA32, false);
-        setupCamera();
+        SetupCamera();
     }
 
     private void Update()
@@ -72,7 +72,7 @@ public class RoboflowCaller : MonoBehaviour
         // Open / Close Feeback
         if (OVRInput.GetDown(OVRInput.Button.Start))
         {
-            onStreamingButtonCLicked();
+            OnStreamingButtonCLicked();
             _streamingFeedbackGUI.SetActive(_isStreaming);
             if (_isStreaming)
             {
@@ -100,19 +100,19 @@ public class RoboflowCaller : MonoBehaviour
     /// <summary>
     /// Starts/stops the streaming coroutine.
     /// </summary>
-    public void onStreamingButtonCLicked()
+    private void OnStreamingButtonCLicked()
     {
         if (_isStreaming)
         {
             _isStreaming = false;
             StopAllCoroutines();
-            clearPreviousMarkers();
+            ClearPreviousMarkers();
             Debug.Log("Streaming stopped.");
         }
         else
         {
             _isStreaming = true;
-            StartCoroutine(callRoboflow());
+            StartCoroutine(CallRoboflow());
             Debug.Log("Streaming started.");
         }
     }
@@ -120,7 +120,7 @@ public class RoboflowCaller : MonoBehaviour
     /// <summary>
     /// Initializes the webcam texture and sets it to the image display.
     /// </summary>
-    private void setupCamera()
+    private void SetupCamera()
     {
         Debug.Log("Setup Camera...");
 
@@ -141,7 +141,7 @@ public class RoboflowCaller : MonoBehaviour
     /// <summary>
     /// Scales down a texture to the given dimensions.
     /// </summary>
-    private Texture2D resizeTexture(Texture2D source, int targetWidth, int targetHeight)
+    private Texture2D ResizeTexture(Texture2D source, int targetWidth, int targetHeight)
     {
         var rt = RenderTexture.GetTemporary(targetWidth, targetHeight);
         rt.filterMode = FilterMode.Bilinear;
@@ -155,7 +155,7 @@ public class RoboflowCaller : MonoBehaviour
         return result;
     }
 
-    private IEnumerator callRoboflow()
+    private IEnumerator CallRoboflow()
     {
         while (true)
         {
@@ -169,7 +169,7 @@ public class RoboflowCaller : MonoBehaviour
                 _texture2D = _cameraAccess.GetTexture() as Texture2D;
             }
 
-            byte[] jpg = resizeTexture(_texture2D, 512, 512).EncodeToJPG(80);
+            byte[] jpg = ResizeTexture(_texture2D, 512, 512).EncodeToJPG(80);
             string base64Image = Convert.ToBase64String(jpg);
             var image = new InferenceRequestImage("base64", base64Image);
 
@@ -194,7 +194,7 @@ public class RoboflowCaller : MonoBehaviour
         {
             foreach (var pred in response.Predictions)
                 Debug.Log($"Detected {pred.Class} at ({pred.X},{pred.Y}) confidence: {pred.Confidence}");
-            renderDetections(response.Predictions);
+            RenderDetections(response.Predictions);
         }
         else
         {
@@ -205,7 +205,7 @@ public class RoboflowCaller : MonoBehaviour
     /// <summary>
     /// Clears all previously tracked markers.
     /// </summary>
-    private void clearPreviousMarkers()
+    private void ClearPreviousMarkers()
     {
         foreach (var marker in _activeMarkerMap.Values)
         {
@@ -217,7 +217,7 @@ public class RoboflowCaller : MonoBehaviour
     /// <summary>
     /// Returns an existing marker for a given class ID.
     /// </summary>
-    private RoboflowObject checkForExistingMarker(int classID)
+    private RoboflowObject CheckForExistingMarker(int classID)
     {
         _activeMarkerMap.TryGetValue(classID, out var marker);
         return marker;
@@ -226,7 +226,7 @@ public class RoboflowCaller : MonoBehaviour
     /// <summary>
     /// Projects 2D detections into 3D space using raycasting and renders marker objects. Copy from Rob's PCA samples.
     /// </summary>
-    public void renderDetections(List<ObjectDetectionPrediction> predictions)
+    private void RenderDetections(List<ObjectDetectionPrediction> predictions)
     {
         Vector2Int camRes = _cameraAccess.CurrentResolution;
         float halfWidth = targetWidth * 0.5f;
@@ -242,7 +242,7 @@ public class RoboflowCaller : MonoBehaviour
                 continue;
             }
 
-            RoboflowObject marker = checkForExistingMarker(prediction.Class_Id);
+            RoboflowObject marker = CheckForExistingMarker(prediction.Class_Id);
             if (marker == null)
             {
                 Debug.Log($"No marker assigned for class {prediction.Class_Id}");
