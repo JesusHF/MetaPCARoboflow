@@ -1,29 +1,27 @@
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.UI;
 using System.Collections;
 using System;
 using System.Collections.Generic;
 using Meta.XR;
-using System.ComponentModel;
 
 /// <summary>
 /// Handles webcam streaming, sending frames to Roboflow, receiving detections, and rendering tracked objects in 3D space.
 /// </summary>
 public class RoboflowCaller : MonoBehaviour
 {
-    public bool IsStreaming { get { return _isStreaming; } }
-
-    [Header("Camera & Streaming")]
-    [SerializeField] private RawImage _imageDisplay; // UI display for webcam feed
     private PassthroughCameraAccess _cameraAccess;
     private Texture2D _texture2D = null; // Used for sending frames to Roboflow
     private bool _isStreaming = false; // Streaming toggle
 
+    [Header("Camera & Streaming")]
+    [SerializeField] private RawImage _imageDisplay; // UI display for webcam feed
+
     [Header("3D Scene References")]
-    [SerializeField] private EnvironmentRaycastManager envRaycastManager;
-    [SerializeField] private GameObject GUI;
-    [SerializeField] private GameObject leftHandController;
-    [SerializeField] private GameObject CenterEyeAnchor;
+    [SerializeField] private EnvironmentRaycastManager _envRaycastManager;
+    [SerializeField] private GameObject _centerEyeAnchor;
+    [SerializeField] private GameObject _streamingFeedbackGUI;
 
     [Header("Tracked Marker Objects")]
     [SerializeField] private GameObject _markerPrefab; // Prefabs to instantiate
@@ -32,7 +30,7 @@ public class RoboflowCaller : MonoBehaviour
     [SerializeField] private float minConfidence = 0.8f; // Detection confidence threshold
 
     [Header("Roboflow API Configuration")]
-    [SerializeField] private string RF_MODEL = "xraihack_bears-fndxs/6"; // Model name for Roboflow
+    [SerializeField] private string RF_MODEL = ""; // Model name for Roboflow
     [SerializeField] private bool USE_LOCAL_SERVER = false; // Toggle for local server usage
     [SerializeField] private string LOCAL_SERVER_IP_ADDRESS = "http://192.168.0.220:9001"; // Local server URL for Roboflow
     private RoboflowInferenceClient client; // API client
@@ -40,6 +38,16 @@ public class RoboflowCaller : MonoBehaviour
     private Texture2D result; // Texture for resized images
     private const int targetWidth = 512; // Target width for resized images
     private const int targetHeight = 512; // Target height for resized images
+
+    private void Awake()
+    {
+        Assert.IsNotNull(_imageDisplay, "_imageDisplay is not assigned.");
+        Assert.IsNotNull(_envRaycastManager, "_envRaycastManager is not assigned.");
+        Assert.IsNotNull(_centerEyeAnchor, "_centerEyeAnchor is not assigned.");
+        Assert.IsNotNull(_streamingFeedbackGUI, "_streamingFeedbackGUI is not assigned.");
+        Assert.IsNotNull(_markerPrefab, "_markerPrefab is not assigned.");
+        Assert.IsTrue(rfClassNames != null && rfClassNames.Count > 0, "rfClassNames is not assigned or empty.");
+    }
 
     private void Start()
     {
@@ -54,8 +62,24 @@ public class RoboflowCaller : MonoBehaviour
         }
         BuildObjectPool();
 
+        _streamingFeedbackGUI.SetActive(false);
         result = new Texture2D(targetWidth, targetHeight, TextureFormat.RGBA32, false);
         setupCamera();
+    }
+
+    private void Update()
+    {
+        // Open / Close Feeback
+        if (OVRInput.GetDown(OVRInput.Button.Start))
+        {
+            onStreamingButtonCLicked();
+            _streamingFeedbackGUI.SetActive(_isStreaming);
+            if (_isStreaming)
+            {
+                _streamingFeedbackGUI.transform.position = _centerEyeAnchor.transform.position + _centerEyeAnchor.transform.forward * 0.6f;
+                _streamingFeedbackGUI.transform.rotation = Quaternion.LookRotation(_streamingFeedbackGUI.transform.position - _centerEyeAnchor.transform.position);
+            }
+        }
     }
 
     /// <summary>
@@ -88,7 +112,6 @@ public class RoboflowCaller : MonoBehaviour
         else
         {
             _isStreaming = true;
-            GUI.SetActive(false);
             StartCoroutine(callRoboflow());
             Debug.Log("Streaming started.");
         }
@@ -108,7 +131,10 @@ public class RoboflowCaller : MonoBehaviour
         if (_cameraAccess.enabled)
         {
             _texture2D = _cameraAccess.GetTexture() as Texture2D;
-            _imageDisplay.texture = _cameraAccess.GetTexture();
+            if (_imageDisplay != null)
+            {
+                _imageDisplay.texture = _texture2D;
+            }
         }
     }
 
@@ -230,14 +256,14 @@ public class RoboflowCaller : MonoBehaviour
             float perY = (adjustedCenterY + halfHeight) / targetHeight;
 
             Ray centerRay = _cameraAccess.ViewportPointToRay(new Vector2(perX, 1.0f - perY));
-            if (!envRaycastManager.Raycast(centerRay, out var centerHit))
+            if (!_envRaycastManager.Raycast(centerRay, out var centerHit))
             {
                 Debug.LogWarning("Raycast failed.");
                 continue;
             }
 
             Vector3 markerWorldPos = centerHit.point;
-            marker.SuccesfullyTracked(markerWorldPos, CenterEyeAnchor.transform.position);
+            marker.SuccesfullyTracked(markerWorldPos, _centerEyeAnchor.transform.position);
             marker.SetDebugText(prediction.Class + " " + prediction.Confidence.ToString("F2"));
             Debug.Log($"Placed marker {i} at {markerWorldPos}");
         }
